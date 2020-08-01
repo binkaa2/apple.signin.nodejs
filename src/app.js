@@ -52,6 +52,7 @@ app.post(
   async (req, res) => {
     const clientSecret = getClientSecret();
     const secret = await auth._tokenGenerator.generate();
+    console.log(secret);
     const requestBody = {
       grant_type: "authorization_code",
       code: req.body.code,
