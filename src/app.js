@@ -18,13 +18,13 @@ const getClientSecret = () => {
   // sign with RSA SHA256
   const privateKey = fs.readFileSync("./config/AuthKey.p8");
   const headers = {
-    kid: process.env.KEY_ID,
+    kid: config.key_id,
     typ: undefined, // is there another way to remove type?
   };
   const claims = {
-    iss: process.env.TEAM_ID,
+    iss: config.team_id,
     aud: "https://appleid.apple.com",
-    sub: process.env.CLIENT_ID,
+    sub: config.client_id,
   };
   token = jwt.sign(claims, privateKey, {
     algorithm: "ES256",
