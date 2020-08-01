@@ -34,9 +34,10 @@ const getClientSecret = () => {
   return token;
 };
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
   console.log(Date().toString() + "GET /");
-  console.log(getClientSecret());
+
+  console.log(await auth._tokenGenerator.generate());
   // res.redirect(auth.loginURL())
   res.redirect(auth.loginURL());
 });
@@ -45,36 +46,41 @@ app.get("/token", (req, res) => {
   res.send(auth._tokenGenerator.generate());
 });
 
-app.post("/auth", bodyParser.urlencoded({ extended: false }), (req, res) => {
-  const clientSecret = getClientSecret();
-  const requestBody = {
-    grant_type: "authorization_code",
-    code: req.body.code,
-    redirect_uri: config.redirect_uri,
-    client_id: config.client_id,
-    client_secret: clientSecret,
-    scope: config.scope,
-  };
-  axios
-    .request({
-      method: "POST",
-      url: "https://appleid.apple.com/auth/token",
-      data: querystring.stringify(requestBody),
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    })
-    .then((response) => {
-      return res.json({
-        success: true,
-        data: response.data,
+app.post(
+  "/auth",
+  bodyParser.urlencoded({ extended: false }),
+  async (req, res) => {
+    const clientSecret = getClientSecret();
+    const secret = await auth._tokenGenerator.generate();
+    const requestBody = {
+      grant_type: "authorization_code",
+      code: req.body.code,
+      redirect_uri: config.redirect_uri,
+      client_id: config.client_id,
+      client_secret: secret,
+      scope: config.scope,
+    };
+    axios
+      .request({
+        method: "POST",
+        url: "https://appleid.apple.com/auth/token",
+        data: querystring.stringify(requestBody),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      })
+      .then((response) => {
+        return res.json({
+          success: true,
+          data: response.data,
+        });
+      })
+      .catch((error) => {
+        return res.status(500).json({
+          success: false,
+          error: error.response.data,
+        });
       });
-    })
-    .catch((error) => {
-      return res.status(500).json({
-        success: false,
-        error: error.response.data,
-      });
-    });
-});
+  }
+);
 
 app.post("/callback", bodyParser(), async (req, res) => {
   try {
