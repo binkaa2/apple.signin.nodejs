@@ -65,7 +65,7 @@ app.post(
       .request({
         method: "POST",
         url: "https://appleid.apple.com/auth/token",
-        data: querystring.stringify(),
+        data: querystring.stringify(requestBody),
         headers: { "content-type": "application/x-www-form-urlencoded" },
       })
       .then((response) => {
