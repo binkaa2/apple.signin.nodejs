@@ -52,7 +52,7 @@ app.post(
   async (req, res) => {
     const clientSecret = getClientSecret();
     const secret = await auth._tokenGenerator.generate();
-    console.log(secret);
+
     const requestBody = {
       grant_type: "authorization_code",
       code: req.body.code,
@@ -60,11 +60,12 @@ app.post(
       client_id: config.client_id,
       client_secret: secret,
     };
+    console.log(requestBody);
     axios
       .request({
         method: "POST",
         url: "https://appleid.apple.com/auth/token",
-        data: querystring.stringify(requestBody),
+        data: requestBody,
         headers: { "content-type": "application/x-www-form-urlencoded" },
       })
       .then((response) => {
