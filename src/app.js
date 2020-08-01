@@ -59,14 +59,13 @@ app.post(
       redirect_uri: config.redirect_uri,
       client_id: config.client_id,
       client_secret: secret,
-      scope: config.scope,
     };
     axios
       .request({
         method: "POST",
         url: "https://appleid.apple.com/auth/token",
         data: querystring.stringify(requestBody),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "content-type": "application/x-www-form-urlencoded" },
       })
       .then((response) => {
         return res.json({
