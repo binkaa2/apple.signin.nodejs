@@ -56,8 +56,8 @@ app.post(
     const requestBody = {
       grant_type: "authorization_code",
       code: req.body.code,
-      redirect_uri: config.redirect_uri,
-      client_id: config.client_id,
+      redirect_uri: "https://apple-sign-in-stdiohue.herokuapp.com/auth",
+      client_id: "com.LiveRun",
       client_secret: secret,
     };
     console.log(requestBody);
@@ -65,7 +65,7 @@ app.post(
       .request({
         method: "POST",
         url: "https://appleid.apple.com/auth/token",
-        data: requestBody,
+        data: querystring.stringify(),
         headers: { "content-type": "application/x-www-form-urlencoded" },
       })
       .then((response) => {
