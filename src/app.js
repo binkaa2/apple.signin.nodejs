@@ -14,34 +14,6 @@ let auth = new AppleAuth(
   "text"
 );
 
-const getClientSecret = () => {
-  // sign with RSA SHA256
-  const privateKey = fs.readFileSync("./config/AuthKey.p8");
-  const headers = {
-    kid: config.key_id,
-    typ: undefined, // is there another way to remove type?
-  };
-  const claims = {
-    iss: config.team_id,
-    aud: "https://appleid.apple.com",
-    sub: config.client_id,
-  };
-  token = jwt.sign(claims, privateKey, {
-    algorithm: "ES256",
-    header: headers,
-    expiresIn: "24h",
-  });
-  return token;
-};
-
-app.get("/", async (req, res) => {
-  console.log(Date().toString() + "GET /");
-
-  console.log(await auth._tokenGenerator.generate());
-  // res.redirect(auth.loginURL())
-  res.redirect(auth.loginURL());
-});
-
 app.get("/token", (req, res) => {
   res.send(auth._tokenGenerator.generate());
 });
@@ -50,7 +22,6 @@ app.post(
   "/auth",
   bodyParser.urlencoded({ extended: false }),
   async (req, res) => {
-    const clientSecret = getClientSecret();
     const secret = await auth._tokenGenerator.generate();
 
     const requestBody = {
@@ -59,6 +30,7 @@ app.post(
       redirect_uri: "https://apple-sign-in-stdiohue.herokuapp.com/auth",
       client_id: "com.LiveRun",
       client_secret: secret,
+      scope: "name email",
     };
     console.log(requestBody);
     axios
@@ -82,28 +54,6 @@ app.post(
       });
   }
 );
-
-app.post("/callback", bodyParser(), async (req, res) => {
-  try {
-    console.log(Date().toString() + "GET /auth");
-    const response = await auth.accessToken(req.body.code);
-    const idToken = jwt.decode(response.id_token);
-
-    const user = {};
-    user.id = idToken.sub;
-
-    if (idToken.email) user.email = idToken.email;
-    if (req.body.user) {
-      const { name } = JSON.parse(req.body.user);
-      user.name = name;
-    }
-
-    res.json(user);
-  } catch (ex) {
-    console.error(ex);
-    res.send("An error occurred!");
-  }
-});
 
 app.get("/refresh", async (req, res) => {
   try {
