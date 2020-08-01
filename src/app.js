@@ -14,7 +14,8 @@ let auth = new AppleAuth(
 
 app.get("/", (req, res) => {
   console.log(Date().toString() + "GET /");
-  res.redirect(auth.loginURL());
+  // res.redirect(auth.loginURL())
+  res.send(`<a href="${auth.loginURL()}">Sign in with Apple</a>`);
 });
 
 app.get("/token", (req, res) => {
