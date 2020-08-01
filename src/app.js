@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const app = express();
 const fs = require("fs");
 const config = fs.readFileSync("./config/config.json");
@@ -12,8 +13,29 @@ let auth = new AppleAuth(
   "text"
 );
 
+const getClientSecret = () => {
+  // sign with RSA SHA256
+  const privateKey = fs.readFileSync("./config/AuthKey.p8");
+  const headers = {
+    kid: process.env.KEY_ID,
+    typ: undefined, // is there another way to remove type?
+  };
+  const claims = {
+    iss: process.env.TEAM_ID,
+    aud: "https://appleid.apple.com",
+    sub: process.env.CLIENT_ID,
+  };
+  token = jwt.sign(claims, privateKey, {
+    algorithm: "ES256",
+    header: headers,
+    expiresIn: "24h",
+  });
+  return token;
+};
+
 app.get("/", (req, res) => {
   console.log(Date().toString() + "GET /");
+  console.log(getClientSecret());
   // res.redirect(auth.loginURL())
   res.redirect(auth.loginURL());
 });
@@ -22,7 +44,38 @@ app.get("/token", (req, res) => {
   res.send(auth._tokenGenerator.generate());
 });
 
-app.post("/auth", bodyParser(), async (req, res) => {
+app.post("/auth", bodyParser.urlencoded({ extended: false }), (req, res) => {
+  const clientSecret = getClientSecret();
+  const requestBody = {
+    grant_type: "authorization_code",
+    code: req.body.code,
+    redirect_uri: config.redirect_uri,
+    client_id: config.client_id,
+    client_secret: clientSecret,
+    scope: config.scope,
+  };
+  axios
+    .request({
+      method: "POST",
+      url: "https://appleid.apple.com/auth/token",
+      data: querystring.stringify(requestBody),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    })
+    .then((response) => {
+      return res.json({
+        success: true,
+        data: response.data,
+      });
+    })
+    .catch((error) => {
+      return res.status(500).json({
+        success: false,
+        error: error.response.data,
+      });
+    });
+});
+
+app.post("/callback", bodyParser(), async (req, res) => {
   try {
     console.log(Date().toString() + "GET /auth");
     const response = await auth.accessToken(req.body.code);
