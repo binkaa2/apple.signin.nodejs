@@ -1,13 +1,7 @@
 const express = require("express");
 const app = express();
 const fs = require("fs");
-const config = {
-  client_id: "com.LiveRun.AppleSignIn",
-  team_id: "LA8AYM2SFE",
-  key_id: "U2S84YVK6T",
-  redirect_uri: "https://apple-sign-in-stdiohue.herokuapp.com/auth",
-  scope: "name email",
-};
+const config = fs.readFileSync("./config/config.json");
 const AppleAuth = require("apple-auth");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
