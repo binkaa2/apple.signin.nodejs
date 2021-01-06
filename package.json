@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "apple-auth": "git+https://github.com/ananay/apple-auth",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.4",
